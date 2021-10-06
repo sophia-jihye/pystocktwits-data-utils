@@ -7,7 +7,7 @@ from .utils import textblob_sentiment_list
 
 import csv
 import time
-
+import pandas as pd
 
 class PyStockTwitData():
 
@@ -112,6 +112,7 @@ class PyStockTwitData():
         # Create lists to append the parsed out json too.
         msgs = []
         sentiment = []
+        created_times = []
 
         twit = self.streamer
         raw_json = twit.get_symbol_msgs(symbol_id=symbol_id, limit=limit)
@@ -123,8 +124,9 @@ class PyStockTwitData():
         for message in messages_data:
             msgs.append(message.get("body"))
             sentiment.append(message.get("entities"))
+            created_times.append(message.get("created_at"))
 
-        return msgs, sentiment
+        return msgs, sentiment, created_times
 
     def get_all_msgs_with_sentiment_by_user_id(self, user_id, limit=30):
 
@@ -192,55 +194,49 @@ class PyStockTwitData():
 
         return parsed_sentiments
 
-    def stocktwit_csv_create(self, company_ids, loop_limit,
-                             time_delay, limit=30):
+    def stocktwit_csv_create(self, company_id, time_delay, limit=30, max_row_num=50000):
 
         """Create a dataset based on the symbol id in the form of a csv
 
         Args:
-            csv_name (string): Has to end with .csv. Name of the CSV
-                               you want to create
             company_id (string): The Company Symbol. Ex: 'AAPL'
-            loop_limit(int): How many times you want this to execute
             time_delays(int): Delay before API Call in seconds
             limit(int): How many msgs to get when executing call
 
         """
-
+        records = []
+        uniq_messages = []
         print("To end this function, use Control+C or wait for loop limit\n")
 
-
-        csv_name_ = '{}.csv'
-        for company_id in company_ids:        # Create a CSV
-            csv_name = csv_name_.format(company_id)
-            with open(csv_name, 'w') as f:
-                f.write("msgs,stock_sentiment\n")
-
         # Instead of infinite loop, just set range
-        while True:#for i in range(0, loop_limit):
-
-            # Set delay for calling again in seconds
-            time.sleep(time_delay)
-            
-            for company_id in company_ids:
-                csv_name = csv_name_.format(company_id)
-                list_of_msgs, list_of_sentiment_json = (
+        while True:
+            if len(records) >= max_row_num: break   # 한 파일 당 저장할 수 있는 최대 수 지정
+                
+            try: 
+                list_of_msgs, list_of_sentiment_json, list_of_dates = (
                     self.get_all_msgs_with_sentiment_by_symbol_id(
                         symbol_id=company_id, limit=limit))
 
                 list_of_sentiment = self.extract_sentiment_statements_basic(
                                     list_of_sentiment_json)
 
-                # After getting the list of sentiment, append to CSV
-                with open(csv_name, 'a', newline='') as f:
-                    writer = csv.writer(f)
-
-                    # Zip to append by list to append by columns
-                    data = list(zip(list_of_msgs, list_of_sentiment))
-                    for row in data:
-                        row = list(row)
-                        writer.writerow(row)
-                print("Wrote Rows for {}".format(company_id))
+                # Zip to append by list to append by columns
+                data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
+                for (msg, senti, created_time) in data:
+                    # Bullish, Bearish로 레이블링 되어있는 데이터만 저장
+                    if msg not in uniq_messages and senti in ('Bearish', 'Bullish'):   
+                        records.append((msg, senti, created_time))
+                        uniq_messages.append(msg)
+                print('# saved instances = {}'.format(len(records)))
+                
+                # Set delay for calling again in seconds
+                time.sleep(time_delay)
+            except: # Ctrl+C로 프로그램 강제 종료 
+                df = pd.DataFrame(records, columns=['message', 'sentiment', 'created_time'])
+                return df, 'forced_stop'
+        
+        df = pd.DataFrame(records, columns=['message', 'sentiment', 'created_time'])
+        return df, 'normal_stop'
 
     def stocktwit_csv_list_create(self, csv_name, company_list,
                               loop_limit, time_delay, limit=30):

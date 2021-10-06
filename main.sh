@@ -1,0 +1,1 @@
+python3 collect_data.py --ticker $1
