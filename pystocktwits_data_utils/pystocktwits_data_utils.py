@@ -244,7 +244,8 @@ class PyStockTwitData():
                             if preprocessed_msg not in uniq_messages:   
                                 records.append((company_id, msg, senti, created_time))
                                 uniq_messages.append(preprocessed_msg)
-                    except:
+                    except Exception as e:
+                        print('[Exception] {}\n'.format(company_id), e)
                         continue
                 
                 print('[{}] # saved instances = {}'.format(datetime.now().strftime('%Y.%m.%d %H:%M:%S'), len(records)))
