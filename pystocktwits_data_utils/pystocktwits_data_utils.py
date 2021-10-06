@@ -6,8 +6,21 @@ from pystocktwits import Streamer
 from .utils import textblob_sentiment_list
 
 import csv
-import time
+import time, re
 import pandas as pd
+from datetime import datetime
+
+EMAIL_PATTERN = re.compile(r'''(([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)(\.[a-zA-Z]{2,4}))''', re.VERBOSE)
+URL_PATTERN = re.compile("(ftp|http|https)?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.VERBOSE)
+MULTIPLE_SPACES = re.compile(' +', re.UNICODE)
+removal_list = "|,‘, ’, ◇, ‘, ”,  ’, ', ·, \“, ·, △, ➤, ●,  , ■, (, ), \", >>, `, /, -,∼,=,ㆍ<,>, .,?, !,【,】, …, ◆,%"
+def get_preprocessed_tokens(text):
+    text = re.sub(EMAIL_PATTERN, ' ', text)   # 이메일 패턴 제거
+    text = re.sub(URL_PATTERN, ' ', text)   # URL 패턴 제거
+    text = re.sub("[^a-zA-Z\\s]", " ", text)
+    text = text.translate(str.maketrans(removal_list, ' '*len(removal_list)))   # 특수문자 제거
+    text = re.sub(MULTIPLE_SPACES, ' ', text)   # 무의미한 공백 제거
+    return text
 
 class PyStockTwitData():
 
@@ -223,10 +236,11 @@ class PyStockTwitData():
                 # Zip to append by list to append by columns
                 data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
                 for (msg, senti, created_time) in data:
-                    if msg not in uniq_messages:   
+                    preprocessed_msg = get_preprocessed_tokens(msg)
+                    if preprocessed_msg not in uniq_messages:   
                         records.append((msg, senti, created_time))
-                        uniq_messages.append(msg)
-                print('[{}] # saved instances = {}'.format(company_id, len(records)))
+                        uniq_messages.append(preprocessed_msg)
+                print('[{}:{}] # saved instances = {}'.format(company_id, datetime.now().strftime('%Y%m%d_%H%M%S'), len(records)))
                 
                 # Set delay for calling again in seconds
                 time.sleep(time_delay)
