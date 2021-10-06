@@ -9,6 +9,7 @@ import csv
 import time, re
 import pandas as pd
 from datetime import datetime
+from tqdm import tqdm
 
 EMAIL_PATTERN = re.compile(r'''(([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)(\.[a-zA-Z]{2,4}))''', re.VERBOSE)
 URL_PATTERN = re.compile("(ftp|http|https)?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.VERBOSE)
@@ -226,7 +227,7 @@ class PyStockTwitData():
             if len(records) >= max_row_num: break   # 한 파일 당 저장할 수 있는 최대 수 지정
                 
             try: 
-                for company_id in company_ids:
+                for company_id in tqdm(company_ids):
                     list_of_msgs, list_of_sentiment_json, list_of_dates = (
                         self.get_all_msgs_with_sentiment_by_symbol_id(
                             symbol_id=company_id, limit=limit))
