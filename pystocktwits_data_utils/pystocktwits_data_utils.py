@@ -192,7 +192,7 @@ class PyStockTwitData():
 
         return parsed_sentiments
 
-    def stocktwit_csv_create(self, csv_name, company_id, loop_limit,
+    def stocktwit_csv_create(self, company_ids, loop_limit,
                              time_delay, limit=30):
 
         """Create a dataset based on the symbol id in the form of a csv
@@ -209,32 +209,38 @@ class PyStockTwitData():
 
         print("To end this function, use Control+C or wait for loop limit\n")
 
-        # Create a CSV
-        with open(csv_name, 'w') as f:
-            f.write("msgs,stock_sentiment\n")
+
+        csv_name_ = '{}.csv'
+        for company_id in company_ids:        # Create a CSV
+            csv_name = csv_name_.format(company_id)
+            with open(csv_name, 'w') as f:
+                f.write("msgs,stock_sentiment\n")
 
         # Instead of infinite loop, just set range
-        for i in range(0, loop_limit):
+        while True:#for i in range(0, loop_limit):
 
             # Set delay for calling again in seconds
             time.sleep(time_delay)
-            list_of_msgs, list_of_sentiment_json = (
-                self.get_all_msgs_with_sentiment_by_symbol_id(
-                    symbol_id=company_id, limit=limit))
+            
+            for company_id in company_ids:
+                csv_name = csv_name_.format(company_id)
+                list_of_msgs, list_of_sentiment_json = (
+                    self.get_all_msgs_with_sentiment_by_symbol_id(
+                        symbol_id=company_id, limit=limit))
 
-            list_of_sentiment = self.extract_sentiment_statements_basic(
-                                list_of_sentiment_json)
+                list_of_sentiment = self.extract_sentiment_statements_basic(
+                                    list_of_sentiment_json)
 
-            # After getting the list of sentiment, append to CSV
-            with open(csv_name, 'a', newline='') as f:
-                writer = csv.writer(f)
+                # After getting the list of sentiment, append to CSV
+                with open(csv_name, 'a', newline='') as f:
+                    writer = csv.writer(f)
 
-                # Zip to append by list to append by columns
-                data = list(zip(list_of_msgs, list_of_sentiment))
-                for row in data:
-                    row = list(row)
-                    writer.writerow(row)
-                    print("Wrote Row")
+                    # Zip to append by list to append by columns
+                    data = list(zip(list_of_msgs, list_of_sentiment))
+                    for row in data:
+                        row = list(row)
+                        writer.writerow(row)
+                print("Wrote Rows for {}".format(company_id))
 
     def stocktwit_csv_list_create(self, csv_name, company_list,
                               loop_limit, time_delay, limit=30):
