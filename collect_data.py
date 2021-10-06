@@ -79,19 +79,13 @@ for _ in range(60):   # 목표: 50,000*60 = 3,000,000건
        'PNW', 'OGN', 'SEE', 'WU', 'IVZ', 'AOS', 'BEN', 'HII', 'ROL',
        'DVA', 'ALK', 'PVH', 'PBCT', 'DISCK', 'NLSN', 'VNO', 'LEG', 'HBI',
        'RL', 'FOX', 'IPGP', 'GPS', 'DISCA', 'UAA', 'UA', 'NWS']
-        time_delay = 1500
-        save_dir = os.path.join(data_dir, mode)
-        stop_msg = start_one_file(company_ids, time_delay, save_dir)
-    
-    elif mode == 'SPY':
-        company_ids = ['SPY']
         time_delay = 300
         save_dir = os.path.join(data_dir, mode)
         stop_msg = start_one_file(company_ids, time_delay, save_dir)
-        
-    elif mode == 'DJIA':
-        company_ids = ['DJIA']
-        time_delay = 3000
+    
+    elif mode == 'indices':
+        company_ids = ['SPY', 'DJIA']
+        time_delay = 300
         save_dir = os.path.join(data_dir, mode)
         stop_msg = start_one_file(company_ids, time_delay, save_dir)
         

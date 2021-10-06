@@ -241,7 +241,7 @@ class PyStockTwitData():
                         for (msg, senti, created_time) in data:
                             if "SmartOptions®" in msg: continue   # bot
                             preprocessed_msg = get_preprocessed_tokens(msg)
-                            if preprocessed_msg not in uniq_messages:   
+                            if preprocessed_msg not in uniq_messages and senti in ('Bearish', 'Bullish'):   
                                 records.append((company_id, msg, senti, created_time))
                                 uniq_messages.append(preprocessed_msg)
                     except Exception as e:
