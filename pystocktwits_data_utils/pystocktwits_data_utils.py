@@ -228,27 +228,30 @@ class PyStockTwitData():
                 
             try: 
                 for company_id in tqdm(company_ids):
-                    list_of_msgs, list_of_sentiment_json, list_of_dates = (
-                        self.get_all_msgs_with_sentiment_by_symbol_id(
-                            symbol_id=company_id, limit=limit))
+                    try:
+                        list_of_msgs, list_of_sentiment_json, list_of_dates = (
+                            self.get_all_msgs_with_sentiment_by_symbol_id(
+                                symbol_id=company_id, limit=limit))
 
-                    list_of_sentiment = self.extract_sentiment_statements_basic(
-                                        list_of_sentiment_json)
+                        list_of_sentiment = self.extract_sentiment_statements_basic(
+                                            list_of_sentiment_json)
 
-                    # Zip to append by list to append by columns
-                    data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
-                    for (msg, senti, created_time) in data:
-                        if "SmartOptions®" in msg: continue   # bot
-                        preprocessed_msg = get_preprocessed_tokens(msg)
-                        if preprocessed_msg not in uniq_messages:   
-                            records.append((company_id, msg, senti, created_time))
-                            uniq_messages.append(preprocessed_msg)
+                        # Zip to append by list to append by columns
+                        data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
+                        for (msg, senti, created_time) in data:
+                            if "SmartOptions®" in msg: continue   # bot
+                            preprocessed_msg = get_preprocessed_tokens(msg)
+                            if preprocessed_msg not in uniq_messages:   
+                                records.append((company_id, msg, senti, created_time))
+                                uniq_messages.append(preprocessed_msg)
+                    except:
+                        continue
                 
                 print('[{}] # saved instances = {}'.format(datetime.now().strftime('%Y.%m.%d %H:%M:%S'), len(records)))
 
                 # Set delay for calling again in seconds
                 time.sleep(time_delay)
-            except: # Ctrl+C로 프로그램 강제 종료 
+            except KeyboardInterrupt: # Ctrl+C로 프로그램 강제 종료 
                 df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time'])
                 return df, 'forced_stop'
         
