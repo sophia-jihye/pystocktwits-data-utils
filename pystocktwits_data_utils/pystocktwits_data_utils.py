@@ -240,7 +240,7 @@ class PyStockTwitData():
                     if preprocessed_msg not in uniq_messages:   
                         records.append((msg, senti, created_time))
                         uniq_messages.append(preprocessed_msg)
-                print('[{}:{}] # saved instances = {}'.format(company_id, datetime.now().strftime('%Y%m%d_%H%M%S'), len(records)))
+                print('[{}:{}] # saved instances = {}'.format(company_id, datetime.now().strftime('%Y.%m.%d %H:%M:%S'), len(records)))
                 
                 # Set delay for calling again in seconds
                 time.sleep(time_delay)
