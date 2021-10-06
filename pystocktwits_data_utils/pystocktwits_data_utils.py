@@ -236,6 +236,7 @@ class PyStockTwitData():
                 # Zip to append by list to append by columns
                 data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
                 for (msg, senti, created_time) in data:
+                    if "SmartOptions®" in msg: continue   # bot
                     preprocessed_msg = get_preprocessed_tokens(msg)
                     if preprocessed_msg not in uniq_messages:   
                         records.append((msg, senti, created_time))
