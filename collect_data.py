@@ -13,8 +13,8 @@ mode = args.mode
 
 def start_one_file(company_ids, time_delay, save_dir):
     if not os.path.exists(save_dir): os.makedirs(save_dir)
-    save_filepath = os.path.join(save_dir, '{}.csv'.format(datetime.now().strftime('%Y%m%d_%H%M%S')))
-    df, stop_msg = data.stocktwit_csv_create(company_ids, time_delay=time_delay, limit=30, max_row_num=10000)
+    df, stop_msg = data.stocktwit_csv_create(company_ids, time_delay=time_delay, limit=30, max_row_num=50000)
+    save_filepath = os.path.join(save_dir, '{}_{}.csv'.format(datetime.now().strftime('%Y%m%d_%H%M%S'), len(df)))
     df.to_csv(save_filepath, index=False)
     print('Created', save_filepath)
     return stop_msg
@@ -79,7 +79,7 @@ for _ in range(60):   # 목표: 50,000*60 = 3,000,000건
        'PNW', 'OGN', 'SEE', 'WU', 'IVZ', 'AOS', 'BEN', 'HII', 'ROL',
        'DVA', 'ALK', 'PVH', 'PBCT', 'DISCK', 'NLSN', 'VNO', 'LEG', 'HBI',
        'RL', 'FOX', 'IPGP', 'GPS', 'DISCA', 'UAA', 'UA', 'NWS']
-        time_delay = 3000
+        time_delay = 1500
         save_dir = os.path.join(data_dir, mode)
         stop_msg = start_one_file(company_ids, time_delay, save_dir)
     
