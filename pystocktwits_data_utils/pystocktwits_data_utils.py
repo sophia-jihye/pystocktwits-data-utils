@@ -227,7 +227,7 @@ class PyStockTwitData():
                     if msg not in uniq_messages and senti in ('Bearish', 'Bullish'):   
                         records.append((msg, senti, created_time))
                         uniq_messages.append(msg)
-                print('# saved instances = {}'.format(len(records)))
+                print('[{}] # saved instances = {}'.format(company_id, len(records)))
                 
                 # Set delay for calling again in seconds
                 time.sleep(time_delay)
