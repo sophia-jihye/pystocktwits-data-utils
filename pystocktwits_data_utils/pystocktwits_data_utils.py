@@ -207,7 +207,7 @@ class PyStockTwitData():
 
         return parsed_sentiments
 
-    def stocktwit_csv_create(self, company_id, time_delay, limit=30, max_row_num=50000):
+    def stocktwit_csv_create(self, company_ids, time_delay, limit=30, max_row_num=50000):
 
         """Create a dataset based on the symbol id in the form of a csv
 
@@ -226,30 +226,32 @@ class PyStockTwitData():
             if len(records) >= max_row_num: break   # 한 파일 당 저장할 수 있는 최대 수 지정
                 
             try: 
-                list_of_msgs, list_of_sentiment_json, list_of_dates = (
-                    self.get_all_msgs_with_sentiment_by_symbol_id(
-                        symbol_id=company_id, limit=limit))
+                for company_id in company_ids:
+                    list_of_msgs, list_of_sentiment_json, list_of_dates = (
+                        self.get_all_msgs_with_sentiment_by_symbol_id(
+                            symbol_id=company_id, limit=limit))
 
-                list_of_sentiment = self.extract_sentiment_statements_basic(
-                                    list_of_sentiment_json)
+                    list_of_sentiment = self.extract_sentiment_statements_basic(
+                                        list_of_sentiment_json)
 
-                # Zip to append by list to append by columns
-                data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
-                for (msg, senti, created_time) in data:
-                    if "SmartOptions®" in msg: continue   # bot
-                    preprocessed_msg = get_preprocessed_tokens(msg)
-                    if preprocessed_msg not in uniq_messages:   
-                        records.append((msg, senti, created_time))
-                        uniq_messages.append(preprocessed_msg)
-                print('[{}:{}] # saved instances = {}'.format(company_id, datetime.now().strftime('%Y.%m.%d %H:%M:%S'), len(records)))
+                    # Zip to append by list to append by columns
+                    data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
+                    for (msg, senti, created_time) in data:
+                        if "SmartOptions®" in msg: continue   # bot
+                        preprocessed_msg = get_preprocessed_tokens(msg)
+                        if preprocessed_msg not in uniq_messages:   
+                            records.append((company_id, msg, senti, created_time))
+                            uniq_messages.append(preprocessed_msg)
                 
+                print('[{}] # saved instances = {}'.format(datetime.now().strftime('%Y.%m.%d %H:%M:%S'), len(records)))
+
                 # Set delay for calling again in seconds
                 time.sleep(time_delay)
             except: # Ctrl+C로 프로그램 강제 종료 
-                df = pd.DataFrame(records, columns=['message', 'sentiment', 'created_time'])
+                df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time'])
                 return df, 'forced_stop'
         
-        df = pd.DataFrame(records, columns=['message', 'sentiment', 'created_time'])
+        df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time'])
         return df, 'normal_stop'
 
     def stocktwit_csv_list_create(self, csv_name, company_list,
