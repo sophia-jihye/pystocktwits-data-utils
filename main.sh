@@ -1,1 +1,1 @@
-python3 collect_data.py --ticker $1
+python3 collect_data.py --ticker $1 --time $2
