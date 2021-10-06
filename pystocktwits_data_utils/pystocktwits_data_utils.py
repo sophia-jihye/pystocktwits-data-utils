@@ -223,8 +223,7 @@ class PyStockTwitData():
                 # Zip to append by list to append by columns
                 data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
                 for (msg, senti, created_time) in data:
-                    # Bullish, Bearish로 레이블링 되어있는 데이터만 저장
-                    if msg not in uniq_messages and senti in ('Bearish', 'Bullish'):   
+                    if msg not in uniq_messages:   
                         records.append((msg, senti, created_time))
                         uniq_messages.append(msg)
                 print('[{}] # saved instances = {}'.format(company_id, len(records)))
