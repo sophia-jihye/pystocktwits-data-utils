@@ -140,7 +140,8 @@ class PyStockTwitData():
             msgs.append(message.get("body"))
             sentiment.append(message.get("entities"))
             created_times.append(message.get("created_at"))
-            users.append(','.join(message.get("mentioned_users")))
+            try: users.append(message.get("user")['username'])
+            except: users.append(None)
 
         return msgs, sentiment, created_times, users
 
