@@ -127,6 +127,7 @@ class PyStockTwitData():
         msgs = []
         sentiment = []
         created_times = []
+        users = []
 
         twit = self.streamer
         raw_json = twit.get_symbol_msgs(symbol_id=symbol_id, limit=limit)
@@ -139,8 +140,9 @@ class PyStockTwitData():
             msgs.append(message.get("body"))
             sentiment.append(message.get("entities"))
             created_times.append(message.get("created_at"))
+            users.append(','.join(message.get("mentioned_users")))
 
-        return msgs, sentiment, created_times
+        return msgs, sentiment, created_times, users
 
     def get_all_msgs_with_sentiment_by_user_id(self, user_id, limit=30):
 
@@ -229,7 +231,7 @@ class PyStockTwitData():
             try: 
                 for company_id in tqdm(company_ids):
                     try:
-                        list_of_msgs, list_of_sentiment_json, list_of_dates = (
+                        list_of_msgs, list_of_sentiment_json, list_of_dates, list_of_users = (
                             self.get_all_msgs_with_sentiment_by_symbol_id(
                                 symbol_id=company_id, limit=limit))
 
@@ -237,12 +239,12 @@ class PyStockTwitData():
                                             list_of_sentiment_json)
 
                         # Zip to append by list to append by columns
-                        data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates))
-                        for (msg, senti, created_time) in data:
+                        data = list(zip(list_of_msgs, list_of_sentiment, list_of_dates, list_of_users))
+                        for (msg, senti, created_time, user) in data:
                             if "SmartOptions®" in msg: continue   # bot
                             preprocessed_msg = get_preprocessed_tokens(msg)
                             if preprocessed_msg not in uniq_messages and senti in ('Bearish', 'Bullish'):   
-                                records.append((company_id, msg, senti, created_time))
+                                records.append((company_id, msg, senti, created_time, user))
                                 uniq_messages.append(preprocessed_msg)
                     except Exception as e:
                         print('[Exception] {}\n'.format(company_id), e)
@@ -253,10 +255,10 @@ class PyStockTwitData():
                 # Set delay for calling again in seconds
                 time.sleep(time_delay)
             except KeyboardInterrupt: # Ctrl+C로 프로그램 강제 종료 
-                df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time'])
+                df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time', 'user'])
                 return df, 'forced_stop'
         
-        df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time'])
+        df = pd.DataFrame(records, columns=['ticker', 'message', 'sentiment', 'created_time', 'user'])
         return df, 'normal_stop'
 
     def stocktwit_csv_list_create(self, csv_name, company_list,
